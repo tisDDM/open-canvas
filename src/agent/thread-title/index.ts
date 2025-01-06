@@ -10,6 +10,7 @@ import { getArtifactContent } from "../../contexts/utils";
 import { isArtifactMarkdownContent } from "../../lib/artifact_content_types";
 import { TITLE_SYSTEM_PROMPT, TITLE_USER_PROMPT } from "./prompts";
 import { TitleGenerationAnnotation, TitleGenerationReturnType } from "./state";
+import { LANGGRAPH_API_URL } from "../../constants";
 
 export const generateTitle = async (
   state: typeof TitleGenerationAnnotation.State,
@@ -75,7 +76,7 @@ export const generateTitle = async (
   }
 
   const langGraphClient = new Client({
-    apiUrl: `http://localhost:${process.env.PORT}`,
+    apiUrl: LANGGRAPH_API_URL,
     defaultHeaders: {
       "X-API-KEY": process.env.LANGCHAIN_API_KEY,
     },

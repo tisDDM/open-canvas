@@ -111,6 +111,78 @@ yarn dev
 
 Then, open [localhost:3000](http://localhost:3000) with your browser and start interacting!
 
+### Run with Docker Compose
+
+If you want to run the entire application using Docker Compose, you can follow the guidelines from [LangGraph Deployment](https://langchain-ai.github.io/langgraph/how-tos/deploy-self-hosted/#using-docker-compose) and the [Next.js Docker Compose Example](https://github.com/vercel/next.js/tree/canary/examples/with-docker-compose).
+
+**Please Note:** The code is highly sensitive to IP and environment configurations. Some settings are applied during build-time and may not take effect at run-time. This behavior is unexpected and should be addressed in the future. Currently, the setup is not fully stable or reliable.
+
+**Key Considerations:**
+
+1. **Server Address:**
+   - **Description:** The IP or URL you enter in the browser's address bar (`SERVER_NAME`).
+   - **Configuration:** Ensure this is correctly set to access the application.
+
+2. **Next.js API Server URL:**
+   - **Description:** The URL where the Next.js API server runs, typically `SERVER_NAME/api`.
+   - **Environment Variable:** Set `NEXT_PUBLIC_API_URL` to inform Open Canvas of this URL. Failure to do so may result in incorrect URL generation in the frontend. Monitor the browser console for related errors.
+
+3. **LangGraph API URL:**
+   - **Description:** The IP or URL to access the LangGraph Docker container.
+   - **Configuration:** Define this in the `docker-compose.yml` file and set the `LANGGRAPH_API_URL` environment variable. If misconfigured, you might encounter errors like "thread id not found" without additional logging.
+
+**Docker Setup Instructions:**
+
+1. **Build LangGraph Docker Image:**
+    ```bash
+    # Generate the Docker image for running LangGraph locally
+    # If you change the container name, ensure it is updated in the Docker Compose file as well
+    langgraph build -t my-langgraph-image
+    ```
+
+2. **Build and Test the Next.js Frontend Docker Container:**
+    ```bash
+    # Build and test the frontend
+    yarn build
+    yarn start
+
+    # Build the Next.js Docker container
+    docker build -t nextjs-docker -f Dockerfile.nextjs .
+    ```
+
+3. **Configure Nginx as a Reverse Proxy:**
+   - **Purpose:** Serve the frontend through Nginx.
+   - **Configuration Example:**
+     ```nginx
+     server {
+         listen 8443 ssl;
+         server_name <SERVER_NAME_OF_THE_WEBSITE>;
+
+         ssl_certificate <PATH_TO_CERTFILE>; # Use the same certificate as above
+         ssl_certificate_key <PATH_TO_KEYFILE>;
+         ssl_protocols TLSv1.2 TLSv1.3;
+         ssl_prefer_server_ciphers on;
+         ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+         # Proxy Settings
+         location / {
+             proxy_set_header Host $host;
+             proxy_set_header X-Real-IP $remote_addr;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_set_header X-Forwarded-Proto $scheme;
+             proxy_pass <URL_WHERE_THE_FRONTEND_IS_RUNNING e.g. http://localhost:3000>;
+             proxy_http_version 1.1;
+             proxy_set_header Upgrade $http_upgrade;
+             proxy_set_header Connection "upgrade";
+             proxy_read_timeout 86400; # Optional: Timeout for longer connections
+         }
+     }
+     ```
+   - **Instructions:**
+     - Add the above server block to your Nginx sites configuration.
+     - Replace placeholders (e.g., `<SERVER_NAME_OF_THE_WEBSITE>`, `<PATH_TO_CERTFILE>`, etc.) with actual values.
+     - Restart Nginx to apply the changes.
+
 
 ## LLM Models
 

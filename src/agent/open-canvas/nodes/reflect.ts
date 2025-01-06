@@ -1,13 +1,14 @@
 import { Client } from "@langchain/langgraph-sdk";
 import { OpenCanvasGraphAnnotation } from "../state";
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
+import { LANGGRAPH_API_URL } from "../../../constants";
 
 export const reflectNode = async (
   state: typeof OpenCanvasGraphAnnotation.State,
   config: LangGraphRunnableConfig
 ) => {
   const langGraphClient = new Client({
-    apiUrl: `http://localhost:${process.env.PORT}`,
+    apiUrl: LANGGRAPH_API_URL,
     defaultHeaders: {
       "X-API-KEY": process.env.LANGCHAIN_API_KEY,
     },
